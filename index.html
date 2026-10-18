@@ -466,6 +466,16 @@ html[data-phone="notch"] #statusbar .isl::before{content:"";position:absolute;le
  #phonectl button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer;text-align:left;transition:background-color .25s,color .25s}
  #phonectl button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 }
+/* UI symbols are SVG now (same as the app); tabs are icons only (48px tall, 25px icons) */
+.ui{display:inline-block;vertical-align:middle;flex:none}
+.rating{display:inline-flex;gap:1px;vertical-align:-2px;margin-right:6px}
+.rating>span{display:inline-flex}
+.stars .ui{display:block}
+.badge{display:inline-flex;align-items:center;gap:3px}
+.row .cnt{display:inline-flex;align-items:center;gap:3px}
+.tab{height:48px;padding:0;justify-content:center}
+.tab svg{width:25px;height:25px}
+.tab.on svg{stroke-width:2.1}
 /* the app's small touches: launch intro, pull to refresh, empty-day picture, streak glint */
 #launch{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000;border-radius:inherit}
 #launch svg{display:block;overflow:visible}
@@ -486,11 +496,11 @@ html[data-phone="notch"] #statusbar .isl::before{content:"";position:absolute;le
   <div id="ptr" aria-hidden="true"><svg viewBox="0 0 100 100"></svg></div>
   <main id="screen"><p class="note" style="padding-top:24px">読み込んでいます…</p></main>
   <nav class="tabbar" aria-label="メニュー">
-    <button class="tab" data-act="tab" data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>ホーム</button>
-    <button class="tab" data-act="tab" data-tab="cal"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>カレンダー</button>
+    <button class="tab" data-act="tab" data-tab="home" aria-label="ホーム"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></button>
+    <button class="tab" data-act="tab" data-tab="cal" aria-label="カレンダー"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button>
     <button class="fab" data-act="cam" aria-label="記録する"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.8"/></svg></button>
-    <button class="tab" data-act="tab" data-tab="share"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>シェア</button>
-    <button class="tab" data-act="tab" data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>マイページ</button>
+    <button class="tab" data-act="tab" data-tab="share" aria-label="シェア"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+    <button class="tab" data-act="tab" data-tab="settings" aria-label="マイページ"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></button>
   </nav>
   <div id="sheets"></div>
   <div id="toast" class="toast off" role="status"></div>
@@ -541,6 +551,7 @@ const APP_NAME='ひびログ';
   if(lv>=1){el.remove();return}requestAnimationFrame(loop)};
  window.launchReady=()=>{ready=true};
  setTimeout(()=>{ready=true;fontsOK=true},5000); // never stay on screen if something goes wrong
+ setTimeout(()=>el.remove(),6500); // even if the browser pauses animation frames (a background tab)
  Promise.race([document.fonts?document.fonts.load('26px "Dela Gothic One"',APP_NAME):0,new Promise(r=>setTimeout(r,900))]).catch(()=>{}).then(()=>{fontsOK=true});
  requestAnimationFrame(loop);
 })();
@@ -641,6 +652,11 @@ const EMO={'🍜':'bowl','🍛':'bowl','🍽':'bowl','🍣':'bowl','☕':'cup','
 const PICK=['bowl','cup','cake','beer','riceball','apple','pin','home','plane','train','scene','wave','mountain','flower','people','chat','clapper','tv','music','game','books','pencil','run','cat','bag','coin','gift','heart','star'];
 function iconKey(e){const s=String(e||'').replace(/️/g,'');return ICON[s]?s:(EMO[s]||EMO[s+'️']||null)}
 function ico(e){const k=iconKey(e);if(!k)return esc(e||'');return'<svg class="ic" viewBox="0 0 48 48" aria-hidden="true">'+ICON[k].map(([d,f])=>(f?`<path d="${d}" fill="${f}" transform="translate(2.5 2.5)"/>`:'')+`<path d="${d}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`).join('')+'</svg>'}
+/* UI symbols as SVG (same paths as the app's UI icons), never as text glyphs */
+const UIP={play:[['M8 5.5v13l11-6.5z',1]],close:[['M6 6l12 12M18 6L6 18']],back:[['M15 5l-7 7 7 7']],next:[['M9 5l7 7-7 7']],down:[['M6 9l6 6 6-6']],plus:[['M12 5v14M5 12h14']],star:[['M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z',1]],note:[['M9 17.5V6l10-2v11.5'],['M9 17.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM19 15.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z',1]]};
+const ui=(n,s=18,w=2)=>`<svg class="ui" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true">${UIP[n].map(([d,f])=>`<path d="${d}" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="${f?1:w}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}</svg>`;
+const ratingHTML=(v,s=13)=>`<span class="rating" role="img" aria-label="${v}/5">${[1,2,3,4,5].map(n=>`<span style="color:${v>=n?'var(--star)':'var(--line)'}">${ui('star',s)}</span>`).join('')}</span>`;
+const ratingOf=e=>{const f=getCat(e.cat).fields.find(f=>f.type==='rating');const v=f&&e.fields?.[f.id];return v>0?v:0};
 function rich(s){const m=String(s).match(/^(\S+)\s(.*)$/);return m&&iconKey(m[1])?ico(m[1])+' '+esc(m[2]):esc(s)}
 function drawIco(x,e,cx,cy,size,ink){const k=iconKey(e);if(!k)return;const sc=size/48;x.save();x.translate(cx-size/2,cy-size/2);x.scale(sc,sc);x.lineJoin='round';x.lineCap='round';
  for(const[d,f]of ICON[k]){const p=new Path2D(d);if(f){x.save();x.translate(2.5,2.5);x.fillStyle=f;x.fill(p);x.restore()}x.lineWidth=2.4;x.strokeStyle=ink;x.stroke(p)}x.restore()}
@@ -767,11 +783,11 @@ function makeSamples(){return SAMPLES.map(([off,t,cat,memo,fields,imgs],i)=>{con
 function streak(){const has=new Set(S.entries.map(e=>dkey(e.ts)));let k=todayKey();if(!has.has(k))k=addDays(k,-1);let n=0;while(has.has(k)){n++;k=addDays(k,-1)}return n}
 
 /* ---------- small renderers ---------- */
-function fieldSummary(e){const c=getCat(e.cat);return c.fields.map(f=>{const v=e.fields?.[f.id];if(v===undefined||v===''||v===null||v===0)return'';if(f.type==='rating')return'★'.repeat(v)+'☆'.repeat(5-v);if(f.type==='money')return'¥'+Number(v).toLocaleString('ja-JP');return v}).filter(Boolean).join(' · ')}
-function metaLine(e){const p=[];if(e.metaOn.place&&e.meta.place)p.push(e.meta.place);if(e.metaOn.song&&e.meta.song)p.push('♪ '+e.meta.song);if(e.sample)p.push('サンプル');return p.join(' · ')}
-function thumbHTML(m,more){const t=mediaThumb(m);return`<div class="th">${t?`<img src="${t}" alt="">`:''}${m.type==='video'?'<span class="badge">▶ 動画</span>':''}${more?`<span class="more">+${more}</span>`:''}</div>`}
-function entryHTML(e,i){const c=getCat(e.cat);const n=e.media.length;const shown=e.media.slice(0,3);const fs=fieldSummary(e);const ml=metaLine(e);
- const txt=`${e.topic?`<span class="ttag">#${esc(e.topic)}</span>`:''}${e.memo?`<p class="memo">${esc(e.memo)}</p>`:''}${fs?`<p class="fields">${esc(fs)}</p>`:''}${ml?`<p class="meta">${esc(ml)}</p>`:''}`;
+function fieldSummary(e){const c=getCat(e.cat);return c.fields.map(f=>{const v=e.fields?.[f.id];if(v===undefined||v===''||v===null||v===0)return'';if(f.type==='rating')return'';if(f.type==='money')return'¥'+Number(v).toLocaleString('ja-JP');return v}).filter(Boolean).join(' · ')}
+function metaLine(e){const p=[];if(e.metaOn.place&&e.meta.place)p.push(esc(e.meta.place));if(e.metaOn.song&&e.meta.song)p.push(ui('note',12)+' '+esc(e.meta.song));if(e.sample)p.push('サンプル');return p.join(' · ')}
+function thumbHTML(m,more){const t=mediaThumb(m);return`<div class="th">${t?`<img src="${t}" alt="">`:''}${m.type==='video'?`<span class="badge">${ui('play',10)} 動画</span>`:''}${more?`<span class="more">+${more}</span>`:''}</div>`}
+function entryHTML(e,i){const c=getCat(e.cat);const n=e.media.length;const shown=e.media.slice(0,3);const fs=fieldSummary(e),rate=ratingOf(e);const ml=metaLine(e);
+ const txt=`${e.topic?`<span class="ttag">#${esc(e.topic)}</span>`:''}${e.memo?`<p class="memo">${esc(e.memo)}</p>`:''}${fs||rate?`<p class="fields">${rate?ratingHTML(rate):''}${esc(fs)}</p>`:''}${ml?`<p class="meta">${ml}</p>`:''}`;
  return`<article class="entry ${S.flash===e.id?'flash':''}" role="button" tabindex="0" data-act="open" data-id="${e.id}" style="--c:${c.color};--i:${i}"><div class="body ${n?'':'textonly'}">
  ${n?`<div class="mwrap"><div class="media m${Math.min(n,3)}">${shown.map((m,j)=>thumbHTML(m,j===2&&n>3?n-3:0)).join('')}</div><span class="pill onimg">${ico(c.emoji)} ${esc(c.name)}</span><span class="stamp">${hm(e.ts)}</span></div>${txt?`<div class="txtp">${txt}</div>`:''}`
  :`<div class="trow"><span class="pill">${ico(c.emoji)} ${esc(c.name)}</span><span class="when">${hm(e.ts)}</span></div>${txt}`}</div></article>`}
@@ -795,7 +811,7 @@ function renderHome(){
  const has=new Set(S.entries.map(e=>dkey(e.ts)));
  const dir=S.anim==='tab'?'stagger':'';
  return`<header class="dayhead">
-  <button class="dbtn" data-act="cal-open" aria-label="カレンダーを開く"><div class="eyebrow">${isToday?greeting():d.getFullYear()} · ${WD[d.getDay()]}</div><h1 class="bigdate" data-m="date">${d.getMonth()+1}.${pad(d.getDate())}<i class="caret">▾</i></h1></button>
+  <button class="dbtn" data-act="cal-open" aria-label="カレンダーを開く"><div class="eyebrow">${isToday?greeting():d.getFullYear()} · ${WD[d.getDay()]}</div><h1 class="bigdate" data-m="date">${d.getMonth()+1}.${pad(d.getDate())}<i class="caret">${ui('down',14,2.2)}</i></h1></button>
   ${!isToday?`<button class="btn ghost sm" data-act="goday" data-day="${tk}">今日</button>`:'<span></span>'}
   <div class="wx" data-m="wx">${ico(w.icon)} <b>${w.temp}℃</b></div></header>
  <div class="week" id="week">${days.map(x=>{const dd=parseKey(x);return`<button class="wday ${x===k?'on':''}" data-act="goday" data-day="${x}" aria-label="${dd.getMonth()+1}月${dd.getDate()}日"><small>${WD[dd.getDay()]}</small><b>${dd.getDate()}</b><i class="${has.has(x)?'has':''}"></i></button>`}).join('')}</div>
@@ -803,8 +819,8 @@ function renderHome(){
   ${!S.settings.welcomed?`<div class="welcome" data-m="welcome" style="--i:0"><h3>${esc(APP_NAME)}へようこそ</h3><ol><li>下のカメラボタンを押して、カテゴリを選んで撮るだけ</li><li>日時・天気・場所は自動で付きます</li><li>「シェア」で、見せたいものだけを画像にできます</li></ol><button class="btn sm" data-act="welcome-ok">はじめる</button></div>`:''}
   <div class="stats" data-m="stats" style="--i:0"><span class="stat">記録 <b>${list.length}</b>件</span><span class="stat">${ico('👟')} <b>${stepsOfDay(k).toLocaleString('ja-JP')}</b>歩</span><span class="stat">${ico('🎵')} ${esc(songOfDay(k))}</span></div>
   ${isToday?(()=>{const t=topicFor(k),done=list.filter(e=>e.topic===t.text).length;return`<div class="topic" data-m="topic" style="--i:1"><div class="min0"><div class="eyebrow">今日のお題</div><div class="ttl">${ico(t.emoji)} ${esc(t.text)}</div><small>${done?`<svg class="chk" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5"/></svg>${done}件 記録しました`:(()=>{const tc=topicCat(t);return tc?`${ico(getCat(tc).emoji)} ${esc(getCat(tc).name)}で撮れます`:'みんなと同じお題で、今日の1枚を'})()}</small></div><button class="btn brand" data-act="topic-shoot">${done?'もう1枚':'撮る'}</button></div>`})():''}
-  ${isToday&&S.settings.suggestHidden!==k?`<div class="card" data-m="suggest" style="--i:1"><div class="thumbstack"><i>${ico('🖼')}</i><i>${ico('🖼')}</i><i>${ico('🖼')}</i></div><div class="t">撮った写真を追加<small>本番では新しい写真を自動で見つけます</small></div><button class="btn ghost" data-act="lib-add">選ぶ</button><button class="x" data-act="suggest-hide" aria-label="閉じる">✕</button></div>`:''}
-  ${ly.length?`<button class="card otd" data-m="otd" style="--i:1" data-act="goday" data-day="${lyKey}">${lyCover?`<img src="${lyCover}" alt="">`:`<span class="ph0">${ico(getCat(ly[0].cat).emoji)}</span>`}<span class="t"><small>1年前の今日</small>${esc(ly[0].memo||getCat(ly[0].cat).name)}${ly.length>1?` ほか${ly.length-1}件`:''}</span><span aria-hidden="true">›</span></button>`:''}
+  ${isToday&&S.settings.suggestHidden!==k?`<div class="card" data-m="suggest" style="--i:1"><div class="thumbstack"><i>${ico('🖼')}</i><i>${ico('🖼')}</i><i>${ico('🖼')}</i></div><div class="t">撮った写真を追加<small>本番では新しい写真を自動で見つけます</small></div><button class="btn ghost" data-act="lib-add">選ぶ</button><button class="x" data-act="suggest-hide" aria-label="閉じる">${ui('close',16)}</button></div>`:''}
+  ${ly.length?`<button class="card otd" data-m="otd" style="--i:1" data-act="goday" data-day="${lyKey}">${lyCover?`<img src="${lyCover}" alt="">`:`<span class="ph0">${ico(getCat(ly[0].cat).emoji)}</span>`}<span class="t"><small>1年前の今日</small>${esc(ly[0].memo||getCat(ly[0].cat).name)}${ly.length>1?` ほか${ly.length-1}件`:''}</span><span aria-hidden="true">${ui('next',18)}</span></button>`:''}
   <section class="timeline ${dir?'stagger':''}" style="--i:2">${list.length?list.map((e,i)=>entryHTML(e,i+2)).join(''):`<div class="empty" data-m="empty"><span class="emptyart">${emptyArt(k,isToday)}</span>${isToday?'まだ記録がありません。<br>下のカメラボタンから、写真・動画・メモで記録できます。':'この日の記録はありません。<br>左右にスワイプで日付を移動できます。'}</div>`}</section>
  </div>`}
 
@@ -818,7 +834,7 @@ function renderCal(){
   cells+=`<button class="dcell ${cov?'has-img':''} ${k===tk?'today':''} ${fut?'future':''}" ${fut?'disabled':`data-act="goday" data-day="${k}"`} aria-label="${m}月${dd}日 ${list.length}件">${cov?`<img src="${cov}" alt="">`:''}<span class="n">${dd}</span>${!cov&&cols.length?`<span class="dots">${cols.map(c=>`<i style="--c:${c}"></i>`).join('')}</span>`:''}</button>`}
  const c=S.calCat&&getCat(S.calCat),shown=(c?inMonth.filter(e=>e.cat===c.id):inMonth).sort((a,b)=>b.ts-a.ts);
 
- return`<header class="calhead" style="padding-block:16px 4px"><button class="icon-btn" data-act="month" data-n="-1" aria-label="前の月">‹</button><h1 data-m="caltitle">${y}.${pad(m)}</h1><button class="icon-btn" data-act="month" data-n="1" aria-label="次の月" ${S.month>=tk.slice(0,7)?'disabled':''}>›</button></header>
+ return`<header class="calhead" style="padding-block:16px 4px"><button class="icon-btn" data-act="month" data-n="-1" aria-label="前の月">${ui('back')}</button><h1 data-m="caltitle">${y}.${pad(m)}</h1><button class="icon-btn" data-act="month" data-n="1" aria-label="次の月" ${S.month>=tk.slice(0,7)?'disabled':''}>${ui('next')}</button></header>
  <div><div class="grid7">${cells}</div>
  <h2 style="margin-top:22px" data-m="calcount">この月の記録 · ${shown.length}件</h2>
  <div class="chips" style="margin-bottom:10px"><button class="chip ${!c?'on':''}" data-act="calcat" data-id="">すべて</button>${S.cats.filter(x=>inMonth.some(e=>e.cat===x.id)).map(x=>`<button class="chip ${c&&c.id===x.id?'on':''}" data-act="calcat" data-id="${x.id}">${ico(x.emoji)} ${esc(x.name)}</button>`).join('')}</div>
@@ -832,8 +848,8 @@ function renderSettings(){
  return`<header class="ph"><div class="profile"><div class="avatar">日</div><div><h1 style="font-size:22px">あなたの記録</h1><small>ログインなしで利用中</small></div></div></header>
  <div class="tiles" style="margin-top:8px;--cols:3">${tile(S.entries.length,'すべての記録')}${tile(since,'日前から')}${tile(streak(),'日 連続',false,glint?'<i class="glint"></i>':'')}</div>
  <h2 style="margin-top:24px">カテゴリ</h2>
- <div class="list">${S.cats.map(c=>`<button class="row" data-act="editcat" data-id="${c.id}" style="--c:${c.color}"><span class="ico">${ico(c.emoji)}</span><span class="t">${esc(c.name)}<small>${c.fields.length?c.fields.map(f=>esc(f.label)).join('・'):'入力項目なし'}</small></span><span class="cnt">${cnt(c.id)}件 ›</span></button>`).join('')}
-  <button class="row" data-act="editcat" data-id="" style="--c:var(--accent)"><span class="ico">＋</span><span class="t">カテゴリを追加</span></button></div>
+ <div class="list">${S.cats.map(c=>`<button class="row" data-act="editcat" data-id="${c.id}" style="--c:${c.color}"><span class="ico">${ico(c.emoji)}</span><span class="t">${esc(c.name)}<small>${c.fields.length?c.fields.map(f=>esc(f.label)).join('・'):'入力項目なし'}</small></span><span class="cnt">${cnt(c.id)}件 ${ui('next',13)}</span></button>`).join('')}
+  <button class="row" data-act="editcat" data-id="" style="--c:var(--accent)"><span class="ico">${ui('plus',20)}</span><span class="t">カテゴリを追加</span></button></div>
  <h2 style="margin-top:24px">通知</h2>
  <div class="list"><label class="row"><span class="t">決まった時間に記録をうながす<small>オフのままでも使えます</small></span><input type="checkbox" class="sw" id="st-notify" data-set="notify" ${st.notify?'checked':''}></label>
   ${st.notify?`<label class="row static" style="animation:vIn .3s var(--ease)"><span class="t">時刻</span><input type="time" class="inp" id="st-time" data-set="notifyTime" value="${st.notifyTime}" style="width:auto"></label>`:''}</div>
@@ -895,15 +911,15 @@ function previewHTML(){const sh=S.share,m=shareModel(),logo=exw('logo','アプ�
 }
 function editbarHTML(){return S.share.edit?`<span>− をタップすると、その要素を画像から外します</span><button class="btn sm" data-act="share-done">完了</button>`:`<span>プレビューを長押しすると、要素を外せます</span>`}
 function shareLiveHTML(){const sh=S.share;return`<div class="editbar" id="editbar">${editbarHTML()}</div><div class="sc ${sh.edit?'editing':''}" id="sc">${previewHTML()}</div>
- ${sh.ex.size?`<div class="exbar"><span>外した要素</span>${[...sh.ex].map(k=>`<button class="chip" data-act="unex" data-k="${esc(k)}">＋ ${esc(sh.exl[k]||'要素')}</button>`).join('')}<button class="linkbtn" data-act="unex-all">すべて戻す</button></div>`:''}`}
+ ${sh.ex.size?`<div class="exbar"><span>外した要素</span>${[...sh.ex].map(k=>`<button class="chip" data-act="unex" data-k="${esc(k)}">${ui('plus',14)} ${esc(sh.exl[k]||'要素')}</button>`).join('')}<button class="linkbtn" data-act="unex-all">すべて戻す</button></div>`:''}`}
 function renderShare(){const sh=S.share,d=parseKey(S.day);
  if(!S.cats.find(c=>c.id===sh.cat))sh.cat=S.cats[0]?.id;
  return`<header class="ph"><h1>シェア</h1><p class="sub">記録を1枚の画像にして、ストーリーズやLINEにシェアできます。</p></header>
  <div class="stack" style="margin-top:8px">
   ${segHTML('smode',[['day','1日'],['week','1週間'],['cat','カテゴリ']],sh.mode,'share-mode')}
-  ${sh.mode==='day'?`<div class="picker" data-m="pick"><button class="icon-btn" data-act="share-day" data-n="-1" aria-label="前の日">‹</button><b>${d.getMonth()+1}.${pad(d.getDate())} ${WD[d.getDay()]}</b><button class="icon-btn" data-act="share-day" data-n="1" aria-label="次の日" ${S.day===todayKey()?'disabled':''}>›</button></div>`
-   :sh.mode==='week'?(()=>{const a=parseKey(addDays(S.day,-6));return`<div class="picker" data-m="pick"><button class="icon-btn" data-act="share-day" data-n="-7" aria-label="前の週">‹</button><b>${a.getMonth()+1}.${pad(a.getDate())} ${WD[a.getDay()]} – ${d.getMonth()+1}.${pad(d.getDate())} ${WD[d.getDay()]}</b><button class="icon-btn" data-act="share-day" data-n="7" aria-label="次の週" ${S.day===todayKey()?'disabled':''}>›</button></div>`})()
-   :`<div class="picker" data-m="pick"><button class="icon-btn" data-act="share-month" data-n="-1" aria-label="前の月">‹</button><b>${d.getFullYear()}.${pad(d.getMonth()+1)}</b><button class="icon-btn" data-act="share-month" data-n="1" aria-label="次の月" ${S.day.slice(0,7)>=todayKey().slice(0,7)?'disabled':''}>›</button></div>
+  ${sh.mode==='day'?`<div class="picker" data-m="pick"><button class="icon-btn" data-act="share-day" data-n="-1" aria-label="前の日">${ui('back')}</button><b>${d.getMonth()+1}.${pad(d.getDate())} ${WD[d.getDay()]}</b><button class="icon-btn" data-act="share-day" data-n="1" aria-label="次の日" ${S.day===todayKey()?'disabled':''}>${ui('next')}</button></div>`
+   :sh.mode==='week'?(()=>{const a=parseKey(addDays(S.day,-6));return`<div class="picker" data-m="pick"><button class="icon-btn" data-act="share-day" data-n="-7" aria-label="前の週">${ui('back')}</button><b>${a.getMonth()+1}.${pad(a.getDate())} ${WD[a.getDay()]} – ${d.getMonth()+1}.${pad(d.getDate())} ${WD[d.getDay()]}</b><button class="icon-btn" data-act="share-day" data-n="7" aria-label="次の週" ${S.day===todayKey()?'disabled':''}>${ui('next')}</button></div>`})()
+   :`<div class="picker" data-m="pick"><button class="icon-btn" data-act="share-month" data-n="-1" aria-label="前の月">${ui('back')}</button><b>${d.getFullYear()}.${pad(d.getMonth()+1)}</b><button class="icon-btn" data-act="share-month" data-n="1" aria-label="次の月" ${S.day.slice(0,7)>=todayKey().slice(0,7)?'disabled':''}>${ui('next')}</button></div>
     <div class="chips">${S.cats.map(c=>`<button class="chip ${sh.cat===c.id?'on':''}" data-act="share-cat" data-id="${c.id}">${ico(c.emoji)} ${esc(c.name)}</button>`).join('')}</div>`}
   <div id="shareLive" class="stack">${shareLiveHTML()}</div>
   <div class="picker"><span class="note" style="margin:0">背景</span><div style="width:160px">${segHTML('stheme',[['light','ライト'],['dark','ダーク']],sh.theme,'share-theme')}</div></div>
@@ -971,11 +987,11 @@ const SH={capture:drawCapture,detail:drawDetail,editor:drawEditor,cat:drawCatEdi
 /* capture */
 function suggestCat(){const h=new Date().getHours();const id=h>=6&&h<10?'cafe':(h>=11&&h<14)||(h>=18&&h<21)?'food':(h>=21||h<2)?'movie':'scene';return S.cats.find(c=>c.id===id)?id:(S.cats[0]?.id||'other')}
 function openCapture(o={}){const tc=o.topic?topicCat(topicFor(todayKey())):null,id=tc||suggestCat();pushSheet('capture',{cat:id,sug:id,mode:S.settings.lastMode||'photo',front:false,memo:'',topic:o.topic||null})}
-function topicRowHTML(c){const t=topicFor(todayKey()).text;return c.topic?`<button class="on" data-act="cap-topic">#お題 ${esc(c.topic)} ✕</button>`:`<button data-act="cap-topic">＋ 今日のお題「${esc(t)}」で撮る</button>`}
+function topicRowHTML(c){const t=topicFor(todayKey()).text;return c.topic?`<button class="on" data-act="cap-topic">#お題 ${esc(c.topic)} ${ui('close',12,2.4)}</button>`:`<button data-act="cap-topic">${ui('plus',13)} 今日のお題「${esc(t)}」で撮る</button>`}
 function capFinder(c){const cat=getCat(c.cat);return c.mode==='memo'?`<textarea id="capMemo" placeholder="いま、どうしてる?" aria-label="メモ">${esc(c.memo)}</textarea><div class="hint">${esc(hintFor(cat))}</div>`
  :`<div class="gridl"></div><div class="center"><div class="big">${ico(cat.emoji)}</div>${c.mode==='video'?'録画ボタンで動画を撮影':'シャッターで撮影'}<br><small>デモではカメラ(PCではファイル選択)が開きます</small></div><div class="hint">${esc(hintFor(cat))}${c.front?' · インカメラ':''}</div>`}
 function drawCapture(fr){const c=fr.state;
- fr.el.innerHTML=`<div class="camtop"><button class="cbtn" data-act="close" aria-label="閉じる">✕</button>${segHTML('cap',MODES,c.mode,'cap-mode')}<button class="cbtn save ${S.settings.saveToPhotos?'on':''}" data-act="cap-save" aria-pressed="${!!S.settings.saveToPhotos}" aria-label="「写真」アプリにも保存" title="「写真」アプリにも保存"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg></button></div>
+ fr.el.innerHTML=`<div class="camtop"><button class="cbtn" data-act="close" aria-label="閉じる">${ui('close',18)}</button>${segHTML('cap',MODES,c.mode,'cap-mode')}<button class="cbtn save ${S.settings.saveToPhotos?'on':''}" data-act="cap-save" aria-pressed="${!!S.settings.saveToPhotos}" aria-label="「写真」アプリにも保存" title="「写真」アプリにも保存"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg></button></div>
  <div class="finder" id="finder" data-stamp="${(()=>{const d=new Date();return`’${String(d.getFullYear()).slice(2)} ${d.getMonth()+1} ${d.getDate()}`})()}">${capFinder(c)}</div>
  <div class="topicrow" id="topicRow">${topicRowHTML(c)}</div>
  <div class="chips" id="capChips">${S.cats.map(x=>`<button class="chip ${x.id===c.cat?'on':''}" data-act="cap-cat" data-id="${x.id}">${ico(x.emoji)} ${esc(x.name)}${x.id===c.sug?`<span class="sug">${c.topic?'お題':'おすすめ'}</span>`:''}</button>`).join('')}</div>
@@ -1008,9 +1024,9 @@ async function addFromLibrary(files,cat,topic=null){if(!files.length)return;toas
 /* detail */
 function drawDetail(fr){const e=S.entries.find(x=>x.id===fr.state.id);if(!e){fr.el.innerHTML=`<div class="phead"><button class="txtbtn muted l" data-act="close">閉じる</button><b></b><span></span></div><div class="pbody"><div class="empty">この記録は削除されました</div></div>`;return}
  const c=getCat(e.cat),d=new Date(e.ts);
- const fl=c.fields.map(f=>{const v=e.fields?.[f.id];if(v===undefined||v===''||v===0)return'';const s=f.type==='rating'?'★'.repeat(v)+'☆'.repeat(5-v):f.type==='money'?'¥'+Number(v).toLocaleString('ja-JP'):v;return`<dt>${esc(f.label)}</dt><dd>${esc(s)}</dd>`}).join('');
+ const fl=c.fields.map(f=>{const v=e.fields?.[f.id];if(v===undefined||v===''||v===0)return'';const s=f.type==='money'?'¥'+Number(v).toLocaleString('ja-JP'):v;return`<dt>${esc(f.label)}</dt><dd>${f.type==='rating'?ratingHTML(v,18):esc(s)}</dd>`}).join('');
  const meta=[['place','場所','📍'],['weather','天気',''],['song','聴いていた曲','🎵']].filter(([k])=>e.metaOn[k]&&e.meta[k]).map(([k,l,i])=>`<dt>${l}</dt><dd>${k==='weather'?rich(e.meta[k]):ico(i)+' '+esc(e.meta[k])}</dd>`).join('');
- fr.el.innerHTML=`<div class="phead"><button class="txtbtn muted l" data-act="close">${fr.pushed?'‹ 戻る':'閉じる'}</button><b>${d.getMonth()+1}.${pad(d.getDate())} ${WD[d.getDay()]} ${hm(e.ts)}</b><button class="txtbtn r" data-act="edit" data-id="${e.id}">編集</button></div>
+ fr.el.innerHTML=`<div class="phead"><button class="txtbtn muted l" data-act="close">${fr.pushed?ui('back',18)+'戻る':'閉じる'}</button><b>${d.getMonth()+1}.${pad(d.getDate())} ${WD[d.getDay()]} ${hm(e.ts)}</b><button class="txtbtn r" data-act="edit" data-id="${e.id}">編集</button></div>
  <div class="pbody">
   ${e.media.length?`<div class="carousel">${e.media.map(m=>m.type==='video'?`<video src="${mediaSrc(m)}" ${m.poster?`poster="${m.poster}"`:''} controls playsinline></video>`:`<img src="${m.src}" alt="">`).join('')}</div>${e.media.length>1?`<p class="note" style="margin-top:-10px">横にスワイプで${e.media.length}枚を表示</p>`:''}`:''}
   <span class="pill" style="--c:${c.color}">${ico(c.emoji)} ${esc(c.name)}</span>
@@ -1029,11 +1045,11 @@ function syncEditor(E){const el=topS().el,m=$('#edMemo',el);if(m)E.memo=m.value;
 function drawEditor(fr){const E=fr.state,c=getCat(E.cat);const sc=fr.el.querySelector('.pbody')?.scrollTop||0;
  fr.el.innerHTML=`<div class="phead"><button class="txtbtn muted l" data-act="close">キャンセル</button><b>記録を編集</b><button class="txtbtn r" data-act="ed-save">保存</button></div>
  <div class="pbody">
-  <div class="field"><span>写真・動画</span><div class="mstrip">${E.media.map((m,i)=>`<div class="mi">${mediaThumb(m)?`<img src="${mediaThumb(m)}" alt="">`:''}${m.type==='video'?'<span class="badge">▶</span>':''}<button class="x" data-act="ed-rm" data-i="${i}" aria-label="削除">✕</button></div>`).join('')}<button class="addm" data-act="ed-add">＋ 追加</button></div></div>
+  <div class="field"><span>写真・動画</span><div class="mstrip">${E.media.map((m,i)=>`<div class="mi">${mediaThumb(m)?`<img src="${mediaThumb(m)}" alt="">`:''}${m.type==='video'?`<span class="badge">${ui('play',10)}</span>`:''}<button class="x" data-act="ed-rm" data-i="${i}" aria-label="削除">${ui('close',12,2.4)}</button></div>`).join('')}<button class="addm" data-act="ed-add">${ui('plus',14)} 追加</button></div></div>
   <div class="field"><span>カテゴリ</span><div class="chips">${S.cats.map(x=>`<button class="chip ${x.id===E.cat?'on':''}" data-act="ed-cat" data-id="${x.id}">${ico(x.emoji)} ${esc(x.name)}</button>`).join('')}</div></div>
   <label class="field"><span>ひとこと(任意)</span><textarea class="inp" id="edMemo" rows="3" placeholder="なにがあった?">${esc(E.memo)}</textarea></label>
   ${c.fields.map(f=>{const v=E.fields[f.id];
-   if(f.type==='rating')return`<div class="field"><span>${esc(f.label)}(任意)</span><div class="stars">${[1,2,3,4,5].map(n=>`<button class="${(v||0)>=n?'on':''}" data-act="ed-star" data-f="${f.id}" data-v="${n}" aria-label="${n}">★</button>`).join('')}</div></div>`;
+   if(f.type==='rating')return`<div class="field"><span>${esc(f.label)}(任意)</span><div class="stars">${[1,2,3,4,5].map(n=>`<button class="${(v||0)>=n?'on':''}" data-act="ed-star" data-f="${f.id}" data-v="${n}" aria-label="${n}">${ui('star',30)}</button>`).join('')}</div></div>`;
    return`<label class="field"><span>${esc(f.label)}(任意)</span><input class="inp" id="edf-${f.id}" ${f.type==='money'?'type="number" inputmode="numeric" min="0" placeholder="¥"':'type="text"'} value="${esc(v??'')}"></label>`}).join('')}
   <label class="field"><span>日時(分単位)</span><input class="inp" type="datetime-local" id="edTs" value="${toLocalInput(E.ts)}"></label>
   <div class="field"><span>自動で追加された情報(タップで表示 / 非表示)</span><div class="mchips">${[['place','📍'],['weather',''],['song','🎵']].map(([k,i])=>`<button class="mchip ${E.metaOn[k]?'':'off'}" data-act="ed-meta" data-k="${k}">${k==='weather'?rich(E.meta[k]):ico(i)+' '+esc(E.meta[k])}</button>`).join('')}</div></div>
@@ -1044,7 +1060,7 @@ function drawEditor(fr){const E=fr.state,c=getCat(E.cat);const sc=fr.el.querySel
 function openCatEditor(id){let st;if(id){const c=getCat(id);st={id,isNew:false,name:c.name,emoji:c.emoji,color:c.color,mode:c.mode,fields:clone(c.fields),confirm:false}}
  else st={id:null,isNew:true,name:'',emoji:'star',color:COLORS[5],mode:'photo',fields:[],confirm:false};pushSheet('cat',st)}
 function syncCat(K){const el=topS().el,n=$('#ckName',el);if(n)K.name=n.value;K.fields.forEach((f,i)=>{const x=$('#ckf-'+i,el);if(x)f.label=x.value})}
-function drawCatEditor(fr){const K=fr.state,n=K.id?S.entries.filter(e=>e.cat===K.id).length:0,TL={text:'テキスト',rating:'★評価',money:'金額'};const sc=fr.el.querySelector('.pbody')?.scrollTop||0;
+function drawCatEditor(fr){const K=fr.state,n=K.id?S.entries.filter(e=>e.cat===K.id).length:0,TL={text:'テキスト',rating:'評価',money:'金額'};const sc=fr.el.querySelector('.pbody')?.scrollTop||0;
  fr.el.innerHTML=`<div class="phead"><button class="txtbtn muted l" data-act="close">キャンセル</button><b>${K.isNew?'カテゴリを追加':'カテゴリを編集'}</b><button class="txtbtn r" data-act="ck-save">保存</button></div>
  <div class="pbody">
   <div class="preview"><span class="pill" style="--c:${K.color}">${ico(K.emoji)} ${esc(K.name||'カテゴリ名')}</span><span class="note" style="margin:0">記録のときにこう表示されます</span></div>
@@ -1053,8 +1069,8 @@ function drawCatEditor(fr){const K=fr.state,n=K.id?S.entries.filter(e=>e.cat===K
   <div class="field"><span>アイコン</span><div class="emo">${EMOJIS.map(e=>`<button class="${iconKey(K.emoji)===e?'on':''}" data-act="ck-emo" data-e="${e}">${ico(e)}</button>`).join('')}</div></div>
   <div class="field"><span>色</span><div class="cols">${COLORS.map(c=>`<button class="${K.color===c?'on':''}" style="--c:${c}" data-act="ck-col" data-c="${c}" aria-label="${c}"></button>`).join('')}</div></div>
   <div class="field"><span>入力項目</span>
-   ${K.fields.map((f,i)=>`<div class="frow"><input class="inp" id="ckf-${i}" value="${esc(f.label)}" maxlength="10" aria-label="項目名"><span class="tag">${TL[f.type]}</span><button class="x" data-act="ck-frm" data-i="${i}" aria-label="項目を削除">✕</button></div>`).join('')}
-   <div class="addrow"><button class="chip" data-act="ck-fadd" data-t="text">＋ テキスト</button><button class="chip" data-act="ck-fadd" data-t="rating">＋ ★評価</button><button class="chip" data-act="ck-fadd" data-t="money">＋ 金額</button></div>
+   ${K.fields.map((f,i)=>`<div class="frow"><input class="inp" id="ckf-${i}" value="${esc(f.label)}" maxlength="10" aria-label="項目名"><span class="tag">${TL[f.type]}</span><button class="x" data-act="ck-frm" data-i="${i}" aria-label="項目を削除">${ui('close',14,2.2)}</button></div>`).join('')}
+   <div class="addrow"><button class="chip" data-act="ck-fadd" data-t="text">${ui('plus',13)} テキスト</button><button class="chip" data-act="ck-fadd" data-t="rating">${ui('plus',13)} 評価</button><button class="chip" data-act="ck-fadd" data-t="money">${ui('plus',13)} 金額</button></div>
    <p class="note" style="margin:0">入力項目はすべて任意です。記録するときは空欄のままで大丈夫です。</p></div>
   ${!K.isNew&&K.id!=='other'?`<div>${K.confirm?`<div class="confirm" style="border:0;padding:0">削除しますか?このカテゴリの記録${n}件は「その他」に移ります。<button class="btn danger" data-act="ck-del">削除する</button><button class="btn ghost" data-act="ck-ask" data-v="0">やめる</button></div>`:`<button class="btn ghost" style="color:var(--rec)" data-act="ck-ask" data-v="1">このカテゴリを削除</button>`}</div>`:''}
  </div>`;postSeg(fr.el);fr.el.querySelector('.pbody').scrollTop=sc}
@@ -1084,7 +1100,10 @@ function tiles(n,X0,Y0,W,H,g){if(n===1)return[[X0,Y0,W,H]];if(n===2){const w=(W-
 function badge(x,emoji,cx,cy){x.fillStyle='rgba(255,255,255,.92)';x.beginPath();x.arc(cx,cy,30,0,7);x.fill();drawIco(x,emoji,cx,cy,36,'#2A2540')}
 function canvas(){const c=document.createElement('canvas');c.width=1080;c.height=1350;const x=c.getContext('2d');x.fillStyle=X.bg;x.fillRect(0,0,1080,1350);return[c,x]}
 const on=k=>!S.share.ex.has(k);
-function foot(x,left){const W=1080,P=64,fy=1294;if(left){x.fillStyle=X.mu;x.font=`500 28px ${FB}`;fillFit(x,left,P,fy,W-2*P-(on('logo')?240:0))}if(on('logo')){x.textAlign='right';x.fillStyle=X.ink;x.font=`700 34px ${FD}`;x.fillText(APP_NAME,W-P,fy);x.textAlign='left'}}
+function foot(x,left,note){const W=1080,P=64,fy=1294;if(left){let sx=P;
+ /* the song's note is drawn as the same SVG path as the app's icon, not as a text glyph */
+ if(note){x.save();x.translate(P,fy-28);x.scale(1.4,1.4);x.strokeStyle=X.mu;x.fillStyle=X.mu;x.lineWidth=2;x.lineCap='round';x.lineJoin='round';x.stroke(new Path2D('M9 17.5V6l10-2v11.5'));x.fill(new Path2D('M9 17.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM19 15.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z'));x.restore();sx=P+42}
+ x.fillStyle=X.mu;x.font=`500 28px ${FB}`;fillFit(x,left,sx,fy,W-2*P-(sx-P)-(on('logo')?240:0))}if(on('logo')){x.textAlign='right';x.fillStyle=X.ink;x.font=`700 34px ${FD}`;x.fillText(APP_NAME,W-P,fy);x.textAlign='left'}}
 async function drawDay(m){const[cv,x]=canvas(),W=1080,P=64,d=parseKey(S.day),w=weatherFor(S.day);
  x.fillStyle=X.mu;x.font=`500 30px ${FM}`;x.fillText(String(d.getFullYear()),P,100);
  if(on('count')){x.textAlign='right';x.font=`500 30px ${FB}`;x.fillText(`${m.rowsAll.length}件の記録`,W-P,100);x.textAlign='left'}
@@ -1100,7 +1119,7 @@ async function drawDay(m){const[cv,x]=canvas(),W=1080,P=64,d=parseKey(S.day),w=w
   x.font=`500 34px ${FB}`;const pl=on('places')&&e.metaOn.place&&e.meta.place?'　'+e.meta.place:'';x.fillStyle=X.ink;
   const tw=W-2*P-150;if(pl){const pw=Math.min(x.measureText(pl).width,tw*.42);fillFit(x,t,P+150,y,tw-pw-10);x.fillStyle=X.mu;fillFit(x,pl,P+150+tw-pw,y,pw);drawIco(x,'📍',P+150+tw-pw+15,y-11,30,X.mu)}else fillFit(x,t,P+150,y,tw);y+=58}
  if(m.rowsAll.length>m.rows.length){x.fillStyle=X.mu;x.font=`500 28px ${FB}`;x.fillText(`ほか${m.rowsAll.length-m.rows.length}件`,P+150,y)}
- foot(x,on('song')?'♪ '+songOfDay(S.day):'');return cv}
+ foot(x,on('song')?songOfDay(S.day):'',true);return cv}
 async function drawCat(m){const[cv,x]=canvas(),W=1080,P=64,c=m.c;
  x.fillStyle=X.mu;x.font=`500 30px ${FM}`;x.fillText(`${m.y}.${pad(m.m+1)}`,P,100);
  x.fillStyle=X.ink;x.font=`700 76px ${FD}`;fillFit(x,`${m.m+1}月の${c.name}`,P,196,W-2*P-220);
